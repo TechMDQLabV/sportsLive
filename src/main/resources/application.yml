@@ -1,0 +1,39 @@
+spring:
+
+  springdoc:
+    swagger2:
+      disable-swagger-default-url: true
+      path: /swagger-ui.html
+
+  management:
+    health:
+      circuitbreakers:
+        enabled: true
+    endpoints:
+      web:
+        exposure:
+          include: health
+    endpoint:
+      health:
+        show-details: always
+
+  resilience4j:
+    circuitbreaker:
+      instances:
+        service1:
+          registerHealthIndicator: true
+          ringBufferSizeInClosedState: 5
+          ringBufferSizeInHalfOpenState: 3
+          waitDurationInOpenState: 10s
+          failureRateThreshold: 50
+          recordExceptions:
+            - java.net.ConnectException
+            - org.springframework.web.client.HttpServerErrorException
+            - java.io.IOException
+            - java.util.concurrent.TimeoutException
+            - org.springframework.web.client.ResourceAccessException
+    retry:
+      instances:
+        service1:
+          max-attempts: 5
+          wait-duration: 5s

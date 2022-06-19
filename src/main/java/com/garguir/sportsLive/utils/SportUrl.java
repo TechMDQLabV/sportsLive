@@ -1,4 +1,4 @@
-package com.garguir.sportsLive.models.enums;
+package com.garguir.sportsLive.utils;
 
 public enum SportUrl {
     FOOTBALL_LIVE("https://sports-live-scores.p.rapidapi.com/football/live"),
