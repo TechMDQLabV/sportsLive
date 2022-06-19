@@ -1,9 +1,6 @@
 spring:
 
-  springdoc:
-    swagger2:
-      disable-swagger-default-url: true
-      path: /swagger-ui.html
+
 
   management:
     health:
