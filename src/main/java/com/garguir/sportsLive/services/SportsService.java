@@ -9,5 +9,5 @@ public interface SportsService {
 
     public List<BasketballGame> getSportGames() throws IOException, InterruptedException;
 
-    public BasketballGame getDataIfApiOff() throws IOException, InterruptedException;
+    public List<BasketballGame> getDataIfApiOff() throws IOException, InterruptedException;
 }

@@ -3,6 +3,7 @@ package com.garguir.sportsLive.controllers;
 import com.garguir.sportsLive.models.BasketballGame;
 import com.garguir.sportsLive.services.BackUpMatchesService;
 import com.garguir.sportsLive.services.SportsService;
+import com.garguir.sportsLive.utils.BackUpMatchUtil;
 import io.github.resilience4j.retry.annotation.Retry;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.media.ArraySchema;
@@ -17,7 +18,11 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.io.IOException;
+import java.util.ArrayList;
 import java.util.List;
+import java.util.Optional;
+
+import static com.garguir.sportsLive.utils.BackUpMatchUtil.setResponseHeader;
 
 @RestController
 @RequestMapping("/sports")
@@ -33,6 +38,7 @@ public class SportsController {
     }
 
     @GetMapping("/basket")
+    @Retry(name = "service2", fallbackMethod = "service1Fallback")
     @Operation(summary = "Find matches live")
     @ApiResponses(value = {
             @ApiResponse(responseCode = "200",  description = "Found matches live", content = @Content(
@@ -44,21 +50,40 @@ public class SportsController {
     })
     public ResponseEntity<List<BasketballGame>> getData() throws IOException, InterruptedException{
         List<BasketballGame> matches = sportsService.getSportGames();
-        backUpMatchesService.addGame(matches.get(matches.size()-1));
-        System.out.println(backUpMatchesService.findLast());
         if(matches.isEmpty()){
             return ResponseEntity.noContent().build();
         }
-        return ResponseEntity.ok(matches);
+        backUpMatchesService.addGame(matches.get(matches.size()-1));
+        System.out.println(backUpMatchesService.findLast());
+
+        return ResponseEntity.ok()
+                .headers(setResponseHeader(Boolean.TRUE))
+                .body(matches);
     }
 
     @GetMapping("/failed")
     @Retry(name = "service1", fallbackMethod = "service1Fallback")
-    public BasketballGame failedRequest() throws IOException, InterruptedException{
-        return sportsService.getDataIfApiOff();
+    public ResponseEntity<List<BasketballGame>> failedRequest() throws IOException, InterruptedException{
+        List<BasketballGame> matches = sportsService.getDataIfApiOff();
+        if(matches.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok()
+                .headers(setResponseHeader(Boolean.TRUE))
+                .body(matches);
     }
 
-    public BasketballGame service1Fallback(Exception e){
-        return backUpMatchesService.findLast();
+    public ResponseEntity<List<BasketballGame>> service1Fallback(Exception e){
+        List<BasketballGame> matches = new ArrayList<>();
+        BasketballGame basketballGame = Optional.ofNullable(backUpMatchesService.findLast())
+                .orElse(BackUpMatchUtil.getNewGame());
+
+        matches.add(basketballGame);
+        if(matches.isEmpty()){
+            return ResponseEntity.noContent().build();
+        }
+        return ResponseEntity.ok()
+                .headers(setResponseHeader(Boolean.FALSE))
+                .body(matches);
     }
 }

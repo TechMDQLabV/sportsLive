@@ -17,6 +17,7 @@ public class BackUpMatchesService {
 
     public BasketballGame findLast(){
         return backUpMatchesRepository.findTopByOrderByIdDesc()
-                .orElseThrow(() -> new NotFoundException("Not found match"));
+                .orElse(null);
+                //.orElseThrow(() -> new NotFoundException("Not found match"));
     }
 }

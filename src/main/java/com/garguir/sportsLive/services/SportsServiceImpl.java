@@ -31,7 +31,7 @@ public class SportsServiceImpl implements SportsService{
     }
 
     @Override
-    public BasketballGame getDataIfApiOff() throws IOException, InterruptedException {
+    public List<BasketballGame> getDataIfApiOff() throws IOException, InterruptedException {
         HttpRequest request = HttpRequest.newBuilder()
                 .uri(URI.create(SportUrl.BASKETBALL_LIVE.getDescription()))
                 .header("X-RapidAPI-Key", "6047eaae07msh707eef4158d3589p15ac15jsn0974713630dfa")
@@ -39,8 +39,8 @@ public class SportsServiceImpl implements SportsService{
                 .method("GET", HttpRequest.BodyPublishers.noBody())
                 .build();
 
-        HttpResponse<BasketballGame> response = HttpClient.newHttpClient().send(request, new JsonBodyHandler<>(BasketballGame.class));
+        HttpResponse<SportsResponse> response = HttpClient.newHttpClient().send(request, new JsonBodyHandler<>(SportsResponse.class));
 
-        return response.body();
+        return response.body().getMatches();
     }
 }
